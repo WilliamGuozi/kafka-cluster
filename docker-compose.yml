@@ -1,0 +1,34 @@
+version: "3"
+
+services:
+
+  zookeeper:
+    hostname: zoo1
+    image: zookeeper:3.6
+    network_mode: "host"
+    volumes:
+      - "./data/zookeeper:/data"
+      - "./data/zookeeper/datalog:/datalog"
+    environment:
+      dc_logs_stdout: stdout
+      ZOO_MY_ID: 1
+      ZOO_SERVERS: server.1=zoo1:2888:3888;2181 server.2=zoo2:2888:3888;2181 server.3=zoo3:2888:3888;2181
+    user: root
+    restart: always
+
+  kafka:
+    hostname: kafka1
+    build:
+      context: kafka-docker
+    ports:
+      - "9092:9092"
+    volumes:
+      - "./data:/bitnami"
+      - "./conf:/opt/bitnami/kafka/config"
+    user: root
+    environment:
+      - dc_logs_stdout=stdout
+      - KAFKA_HEAP_OPTS=-Xmx4G -Xms4G
+    depends_on:
+      - zookeeper
+    restart: always
